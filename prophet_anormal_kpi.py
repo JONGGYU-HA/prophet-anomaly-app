@@ -69,8 +69,10 @@ if uploaded_file:
         else:
             df_grouped = df.copy()
 
-        changepoint_str = st.text_input("Change Point 입력 (YYYY-MM-DD HH:MM:SS)", "2025-05-06 12:00:00")
-        changepoint = pd.to_datetime(changepoint_str)
+        # Change point select box
+        changepoint_options = sorted(df[time_col].dropna().unique())
+        changepoint_selected = st.selectbox("🔀 Change Point 시점 선택", changepoint_options, index=len(changepoint_options) // 2)
+        changepoint = pd.to_datetime(changepoint_selected)
 
         anomaly_threshold = st.slider("이상치 개수 조건 (N개 이상만 표시)", min_value=1, max_value=20, value=3)
 
