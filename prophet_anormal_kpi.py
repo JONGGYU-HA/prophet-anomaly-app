@@ -69,6 +69,12 @@ if uploaded_file:
         else:
             df_grouped = df.copy()
 
+        df[time_col] = pd.to_datetime(df[time_col])
+        sorted_unique_times = pd.Series(df[time_col].dropna().unique()).sort_values()
+        #st.write(sorted_unique_times)
+        freq_guess = pd.infer_freq(sorted_unique_times) or 'h'
+        st.write(f"불러온 데이터의 KPI 시간 단위는 {freq_guess}입니다.")
+
         # Change point select box
         changepoint_options = sorted(df[time_col].dropna().unique())
         changepoint_selected = st.selectbox("🔀 Change Point 시점 선택", changepoint_options, index=len(changepoint_options) // 2)
@@ -77,8 +83,6 @@ if uploaded_file:
         anomaly_threshold = st.slider("이상치 개수 조건 (N개 이상만 표시)", min_value=1, max_value=20, value=3)
 
         if st.button("실행"):
-            df[time_col] = pd.to_datetime(df[time_col])
-
             anomalous_cells = []
             anomaly_stats = {}
 
@@ -101,7 +105,7 @@ if uploaded_file:
 
                     try:
                         model.fit(df_prophet)
-                        future = model.make_future_dataframe(periods=20, freq='H')
+                        future = model.make_future_dataframe(periods=20, freq=freq_guess)
                         forecast = model.predict(future)
 
                         df_merged = pd.merge(df_prophet, forecast[['ds', 'yhat', 'yhat_upper', 'yhat_lower']],
